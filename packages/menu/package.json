@@ -1,0 +1,14 @@
+{
+  "name": "@react-headless/menu",
+  "version": "0.0.1",
+  "description": "Headless react hooks for the creation of menus.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "snowpack": "~2.17.1"
+  }
+}
