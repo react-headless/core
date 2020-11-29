@@ -25,17 +25,6 @@ function init({
     itemMap.set(item.id, {
       active: false,
       hover: false,
-      getProps: (props, dispatch, id) => {
-        return{
-          role: 'menuitem',
-          onPointerLeave: () => dispatch({ type: 'setHoverItem', id, hover: false }),
-          onPointerOver: () => dispatch({ type: 'setHoverItem', id, hover: true }),
-          onMouseOut: () => dispatch({type: 'setActiveItem', id, active: false}),
-          onClick: () => onMenuItemClick(dispatch, id),
-          onMouseOver: () => onMenuItemMouseOver(dispatch, id),
-          ...props
-        };
-      },
       ...item
     });
     flatItemMap.set(item.id, item);
@@ -97,12 +86,25 @@ const useMenu = (...args) => {
         id: item.id,
         items: item.items,
         text: item.text,
-        getProps: (props) => item.getProps(props, dispatch, item.id)
+        setActive: (active) => dispatch({ type: 'setActiveId', id: item.id, active }),
+        getProps: (props) => {
+          return{
+            role: 'menuitem',
+            onPointerLeave: () => dispatch({ type: 'setHoverItem', id: item.id, hover: false }),
+            onPointerOver: () => dispatch({ type: 'setHoverItem', id: item.id, hover: true }),
+            onMouseOut: () => dispatch({type: 'setActiveItem', id: item.id, active: false}),
+            onClick: () => dispatch({type: 'toggleMenu'}),
+            onMouseOver: () => dispatch({type: 'setActiveItem', id: item.id, active: true }),
+            ...props
+          }
+        },
       });
     }
     return tempItems;
   }, [state.items]);
   return{
+    count: state.items.size,
+    flattenedCount: state.flatItems.size,
     expanded: state.expanded,
     dispatch,
     getMenuProps,
