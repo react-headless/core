@@ -2,22 +2,71 @@ import React from 'react';
 
 function init({
   items,
-  expanded = false
+  expanded = false,
+  dispatch
 }) {
-  console.log(items);
+  const itemMap = new Map();
+  let flatItemMap = new Map();
+
+  const onMenuItemMouseOver = (dispatch, id) => {
+    dispatch({type: 'setActiveItem', id, active: true })
+  };
+
+  const onMenuItemClick = (dispatch) => {
+    dispatch({type: 'toggleMenu'});
+  };
+
+  items.forEach((item) => {
+    const { items, ...rest } = item;
+    if (items) {
+      const nestedItems = init({ items, expanded, dispatch });
+      flatItemMap = new Map(...flatItemMap, nestedItems.items);
+    }
+    itemMap.set(item.id, {
+      active: false,
+      hover: false,
+      getProps: (props, dispatch, id) => {
+        return{
+          role: 'menuitem',
+          onPointerLeave: () => dispatch({ type: 'setHoverItem', id, hover: false }),
+          onPointerOver: () => dispatch({ type: 'setHoverItem', id, hover: true }),
+          onMouseOut: () => dispatch({type: 'setActiveItem', id, active: false}),
+          onClick: () => onMenuItemClick(dispatch, id),
+          onMouseOver: () => onMenuItemMouseOver(dispatch, id),
+          ...props
+        };
+      },
+      ...item
+    });
+    flatItemMap.set(item.id, item);
+  });
   return({
-    items: new Set(items),
+    items: itemMap,
+    flatItems: flatItemMap,
+    activeItem: null,
     expanded
   });
 };
 function reducer(state, action) {
   switch (action.type) {
+    case 'setHoverItem':
+      if (action.id) {
+        const item = state.items.get(action.id);
+        item.hover = action.hover;
+      }
+      return {...state, items: state.items};
+    case 'setActiveItem':
+      if (action.id) {
+        const item = state.items.get(action.id);
+        item.active = action.active;
+      }
+      return {...state, items: state.items, activeItem: action.id};
     case 'toggleMenu':
-      return {...state, expanded: !state.expanded};
+      return {...state, items: state.items, expanded: !state.expanded};
     case 'openMenu':
-      return {...state, expanded: true};
+      return {...state, items: state.items, expanded: true};
     case 'closeMenu':
-      return {...state, expanded: false};
+      return {...state, items: state.items, expanded: false};
     default:
       throw new Error();
   }
@@ -25,19 +74,12 @@ function reducer(state, action) {
 
 const useMenu = (...args) => {
   const [items] = args;
-  items.forEach(item => {
-    if (item.items) {
-      useMenu(item.items);
-    }
-  })
   const menuRef = React.useRef();
-  const itemsRef = React.useRef(items);
-  React.useEffect(() => {
-    itemsRef.current = items;
-  }, [items]);
+  
   const memoArgs = React.useMemo(() => {
     return{ items }
   }, [args]);
+
   const [state, dispatch] = React.useReducer(reducer, memoArgs, init);
 
   const getMenuProps = React.useCallback(() => {
@@ -47,26 +89,29 @@ const useMenu = (...args) => {
     };
   }, [menuRef]);
 
-  const onMenuItemClick = React.useCallback(() => {
-    dispatch({type: 'toggleMenu'});
-  }, []);
-  const getMenuItemProps = React.useCallback((props) => {
-    return {
-      role: 'menuitem',
-      onClick: onMenuItemClick,
-      ...props
-    };
-  }, [onMenuItemClick]);
   const menuItems = React.useMemo(() => {
-    return Array.from(state.items.values());
-  }, [state]);
-  return {
+
+    const tempItems = [];
+    for (const item of state.items.values()) {
+      tempItems.push({
+        id: item.id,
+        items: item.items,
+        text: item.text,
+        getProps: (props) => item.getProps(props, dispatch, item.id)
+      });
+    }
+    return tempItems;
+  }, [state.items]);
+  return{
     expanded: state.expanded,
     dispatch,
     getMenuProps,
-    menuItems,
-    getMenuItemProps
+    menuItems
   };
 };
+
+const useMenuItem = () => {
+
+}
 
 export default useMenu;

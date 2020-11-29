@@ -5,7 +5,7 @@ import useErrorBoundary from 'use-error-boundary';
 const App = () => {
   const items = [
     {
-      id: 1,
+      id: '1',
       text: 'item 1',
       items: [
         {
@@ -18,8 +18,8 @@ const App = () => {
         }
       ]
     },
-    { id: 2, text: 'item 2'},
-    { id: 3, text: 'item 3'}
+    { id: '2', text: 'item 2'},
+    { id: '3', text: 'item 3'}
   ];
   
   return(
@@ -29,37 +29,37 @@ const App = () => {
   );
 }
 
-const UlElement = React.memo(({ items }) => {
-  const { expanded, menuItems, getMenuProps, getMenuItemProps } = useMenu(items);
-
+const UlElement = React.memo((props) => {
+  const { expanded, menuItems, getMenuProps} = useMenu(props.items);
+  const testArray = menuItems.map((item, index) => {
+    if (item.items) {
+      return (
+        <React.Fragment key={`li-${item.id}`}>
+          <LiElement expanded={expanded} item={item} text={item.text}>
+            <UlElement items={item.items} />
+          </LiElement>
+        </React.Fragment>
+      )
+    }
+    return (
+    <LiElement key={`li-${item.id}`} expanded={expanded} item={item} >{item.text}</LiElement>
+    );
+  });
   return(
     <ul {...getMenuProps()}>
-      { menuItems.map((item, index) => {
-        if (item.items) {
-          return (
-            <React.Fragment key={`li-${item.id}`}>
-              <LiElement expanded={expanded} item={item} getMenuItemProps={getMenuItemProps} text={item.text}>
-                <UlElement items={item.items} />
-              </LiElement>
-            </React.Fragment>
-          )
-        }
-        return (
-        <LiElement key={`li-${item.id}`} expanded={expanded} item={item} getMenuItemProps={getMenuItemProps}>{item.text}</LiElement>
-        );
-      })}
+      {testArray}
     </ul>
   )
 });
 
-const LiElement = React.memo(({ children, text, expanded, item, getMenuItemProps }) => {
+const LiElement = React.memo(({ children, text, expanded, item}) => {
   return item.id === 1 && expanded ? (
-    <li {...getMenuItemProps()}>
+    <li {...item.getProps()}>
       foo
       {children}
     </li>
     ) : (
-    <li {...getMenuItemProps()}>
+    <li {...item.getProps()}>
       {text}
       {children}
     </li>
