@@ -70,14 +70,22 @@ const useMenu = (...args) => {
     };
   }, [menuRef]);
 
-  const menuItems = React.useMemo(() => {
+  const openMenu = React.useCallback(() => dispatch({ type: 'openMenu' }), []);
+  const closeMenu = React.useCallback(() => dispatch({ type: 'closeMenu' }), []);
+  const toggleMenu = React.useCallback(() => dispatch({ type: 'toggleMenu' }), []);
+
+
+  const getMenuItems = React.useCallback((ittr) => {
 
     const tempItems = [];
-    for (const item of state.items.values()) {
+    for (const item of ittr) {
       tempItems.push({
         id: item.id,
-        items: item.items,
+        items: item.items ? getMenuItems(item.items.values()) : null,
         text: item.text,
+        openMenu,
+        closeMenu,
+        toggleMenu,
         setActive: (active) => dispatch({ type: 'setActiveId', id: item.id, active }),
         getProps: (props) => {
           return{
@@ -93,13 +101,17 @@ const useMenu = (...args) => {
       });
     }
     return tempItems;
-  }, [state.items]);
+  }, [openMenu, closeMenu, toggleMenu]);
+  const menuItems = getMenuItems(state.items.values());
   return{
     count: state.items.size,
     flattenedCount: state.flatItems.size,
     expanded: state.expanded,
     dispatch,
     getMenuProps,
+    openMenu,
+    closeMenu,
+    toggleMenu,
     menuItems
   };
 };

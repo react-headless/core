@@ -21,22 +21,23 @@ const App = () => {
     { id: '2', text: 'item 2'},
     { id: '3', text: 'item 3'}
   ];
+  const { expanded, menuItems, getMenuProps} = useMenu(items);
+
   
   return(
       <div>
-        <UlElement items={items} />
+        <UlElement getMenuProps={getMenuProps} expanded={expanded} items={menuItems} />
       </div>
   );
 }
 
-const UlElement = (props) => {
-  const { expanded, menuItems, getMenuProps} = useMenu(props.items);
-  const testArray = menuItems.map((item, index) => {
+const UlElement = ({ getMenuProps, expanded, items = [] }) => {
+  const testArray = items.map((item, index) => {
     if (item.items) {
       return (
         <React.Fragment key={`li-${item.id}`}>
           <LiElement expanded={expanded} item={item} text={item.text}>
-            <UlElement items={item.items} />
+            <UlElement items={item.items} expanded={expanded} getMenuProps={getMenuProps} />
           </LiElement>
         </React.Fragment>
       )
