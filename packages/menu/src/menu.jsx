@@ -8,14 +8,6 @@ function init({
   const itemMap = new Map();
   let flatItemMap = new Map();
 
-  const onMenuItemMouseOver = (dispatch, id) => {
-    dispatch({type: 'setActiveItem', id, active: true })
-  };
-
-  const onMenuItemClick = (dispatch) => {
-    dispatch({type: 'toggleMenu'});
-  };
-
   items.forEach((item) => {
     const { items, ...rest } = item;
     if (items) {

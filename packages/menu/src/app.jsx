@@ -29,7 +29,7 @@ const App = () => {
   );
 }
 
-const UlElement = React.memo((props) => {
+const UlElement = (props) => {
   const { expanded, menuItems, getMenuProps} = useMenu(props.items);
   const testArray = menuItems.map((item, index) => {
     if (item.items) {
@@ -50,9 +50,9 @@ const UlElement = React.memo((props) => {
       {testArray}
     </ul>
   )
-});
+};
 
-const LiElement = React.memo(({ children, text, expanded, item}) => {
+const LiElement = ({ children, text, expanded, item}) => {
   return item.id === 1 && expanded ? (
     <li {...item.getProps()}>
       foo
@@ -64,5 +64,5 @@ const LiElement = React.memo(({ children, text, expanded, item}) => {
       {children}
     </li>
   )
-})
+}
 export default App;
