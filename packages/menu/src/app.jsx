@@ -21,49 +21,53 @@ const App = () => {
     { id: '2', text: 'item 2'},
     { id: '3', text: 'item 3'}
   ];
-  const { expanded, menuItems, getMenuProps} = useMenu(items);
 
   
   return(
       <div>
-        <UlElement getMenuProps={getMenuProps} expanded={expanded} items={menuItems} />
+        <UlElement items={items} />
       </div>
   );
 }
 
-const UlElement = ({ getMenuProps, expanded, items = [] }) => {
-  const testArray = items.map((item, index) => {
+const UlElement = React.memo(({ items = [] }) => {
+  const { menuItems, totalItems, getMenuProps} = useMenu(items);
+
+  const testArray = menuItems.map((item, index) => {
     if (item.items) {
       return (
         <React.Fragment key={`li-${item.id}`}>
-          <LiElement expanded={expanded} item={item} text={item.text}>
-            <UlElement items={item.items} expanded={expanded} getMenuProps={getMenuProps} />
+          <LiElement item={item} text={item.text}>
+            <UlElement items={item.items} />
           </LiElement>
         </React.Fragment>
       )
     }
     return (
-    <LiElement key={`li-${item.id}`} expanded={expanded} item={item} >{item.text}</LiElement>
+    <LiElement key={`li-${item.id}`} item={item} >{item.text}</LiElement>
     );
   });
   return(
-    <ul {...getMenuProps()}>
-      {testArray}
-    </ul>
+    <React.Fragment>
+      <span>Total Items: {totalItems}</span>
+      <ul {...getMenuProps()}>
+        {testArray}
+      </ul>
+    </React.Fragment>
+    
   )
-};
+});
 
-const LiElement = ({ children, text, expanded, item}) => {
-  return item.id === 1 && expanded ? (
-    <li {...item.getProps()}>
-      foo
-      {children}
-    </li>
-    ) : (
-    <li {...item.getProps()}>
+const LiElement = React.memo(({ children, text, expanded, item}) => {
+  const style = {};
+  if (item.expanded) {
+    style.border = '1px solid black';
+  }
+  return (
+    <li {...item.getProps({style})}>
       {text}
       {children}
     </li>
   )
-}
+})
 export default App;
